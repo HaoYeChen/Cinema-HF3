@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Cinema.Model;
+using Microsoft.AspNetCore.Cors;
 
 namespace Cinema.Controllers
 {
+    [EnableCors("MyAllowSpecificOrigins")]
     [Route("api/[controller]")]
     [ApiController]
     public class MoviesController : ControllerBase
@@ -44,7 +46,13 @@ namespace Cinema.Controllers
             var query2 = _context.Movie
                 .Include(movie => movie.MovieGenre)
                 .ThenInclude(mg => mg.Genre).ToList();
-            
+            foreach (var movie in query2)
+            {
+                foreach (var mg in movie.MovieGenre)
+                {
+                    mg.Genre.MovieGenre = null;
+                }
+            }
 
 
             return query2;
@@ -63,6 +71,22 @@ namespace Cinema.Controllers
 
             return movie;
         }
+
+        //Get: api/Movies/title='Bo'
+        [HttpGet("search")]
+        public Movie Search(string title)
+        {
+            var movie = _context.Movie.Where(m => m.title == title).FirstOrDefault();
+            
+            return movie;
+            //if (movie == null)
+            //{
+            //    return NotFound)();
+            //}
+            //return movie;
+        }
+
+
 
         // PUT: api/Movies/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
@@ -105,7 +129,20 @@ namespace Cinema.Controllers
             _context.Movie.Add(movie);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetMovie", new { id = movie.movieId }, movie);
+            //return movie; //CreatedAtAction("GetMovie", new { id = movie.movieId }, movie);
+            var query2 = _context.Movie.Where(x => x.movieId==movie.movieId)
+                .Include(m => m.MovieGenre)
+                .ThenInclude(mg => mg.Genre).SingleOrDefault();
+
+            foreach (var mg in query2.MovieGenre)
+            {
+                mg.Genre.MovieGenre = null;
+            }
+
+
+
+
+            return query2;
         }
 
         // DELETE: api/Movies/5

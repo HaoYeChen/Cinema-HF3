@@ -22,9 +22,12 @@ namespace Cinema.Controllers
 
         // GET: api/Shows
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Show>>> GetShow()
+        public ActionResult<IEnumerable<Show>> GetShow()
         {
-            return await _context.Show.ToListAsync();
+            //return await _context.Show.ToListAsync();
+            var query = _context.Show
+                .Include(m => m.Movie).ToList();
+            return query;
         }
 
         // GET: api/Shows/5
@@ -40,6 +43,8 @@ namespace Cinema.Controllers
 
             return show;
         }
+
+        
 
         // PUT: api/Shows/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for

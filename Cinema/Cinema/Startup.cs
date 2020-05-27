@@ -33,7 +33,22 @@ namespace Cinema
             services.AddControllers()
                 .AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
-            services.AddControllers();
+            //services.AddControllers();
+
+            // sikkerhedsproblem CORS Policy blablabla
+            services.AddCors(options =>
+            {
+                options.AddPolicy("MyAllowSpecificOrigins",
+                builder =>
+                {
+                    //builder.AllowAnyOrigin()
+                    builder.WithOrigins("http://localhost:4200"
+                                        )
+                                        .AllowAnyHeader()
+                                        .AllowAnyMethod(); // kun get eller put mm.
+                });
+            });
+            // "http://www.contoso.com"
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,10 +58,15 @@ namespace Cinema
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+
+            //Cors
+            app.UseCors("MyAllowSpecificOrigins");
+
 
             app.UseAuthorization();
 

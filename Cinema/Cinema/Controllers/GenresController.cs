@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Cinema.Model;
+using Microsoft.AspNetCore.Cors;
 
 namespace Cinema.Controllers
 {
+    [EnableCors("MyAllowSpecificOrigins")]
     [Route("api/[controller]")]
     [ApiController]
     public class GenresController : ControllerBase
@@ -25,6 +27,20 @@ namespace Cinema.Controllers
         public async Task<ActionResult<IEnumerable<Genre>>> GetGenre()
         {
             return await _context.Genre.ToListAsync();
+
+            //var query1 = _context.Genre
+            //    .Include(Genre => Genre.MovieGenre)
+            //    .ThenInclude(mg => mg.Movie).ToList();
+            //foreach (var movie in query1)
+            //{
+            //    foreach (var mg in movie.MovieGenre)
+            //    {
+            //        mg.Movie.MovieGenre = null;
+            //    }
+            //}
+
+
+            //return query1;
         }
 
         // GET: api/Genres/5
@@ -39,6 +55,15 @@ namespace Cinema.Controllers
             }
 
             return genre;
+        }
+
+        //Get: api/Genre/genre='Bo'
+        [HttpGet("search")]
+        public Genre Search(string genre)
+        {
+            var genre1 = _context.Genre.Where(g => g.genre == genre).FirstOrDefault();
+
+            return genre1;
         }
 
         // PUT: api/Genres/5
@@ -79,10 +104,29 @@ namespace Cinema.Controllers
         [HttpPost]
         public async Task<ActionResult<Genre>> PostGenre(Genre genre)
         {
+            //_context.Genre.Add(genre);
+            //await _context.SaveChangesAsync();
+
+            //return CreatedAtAction("GetGenre", new { id = genre.genreId }, genre);
+
+
             _context.Genre.Add(genre);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGenre", new { id = genre.genreId }, genre);
+            //return movie; //CreatedAtAction("GetMovie", new { id = movie.movieId }, movie);
+            var query2 = _context.Genre.Where(x => x.genreId == genre.genreId)
+                .Include(m => m.MovieGenre)
+                .ThenInclude(mg => mg.Movie).SingleOrDefault();
+
+            foreach (var mg in query2.MovieGenre)
+            {
+                mg.Genre.MovieGenre = null;
+            }
+
+
+
+
+            return query2;
         }
 
         // DELETE: api/Genres/5
